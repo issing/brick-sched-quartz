@@ -1,0 +1,8 @@
+{
+  "name": "sched",
+  "module": "net.isger.brick.sched.SchedModule",
+  "command": "net.isger.brick.sched.SchedCommand",
+  "dependencies": [
+    "plugin"
+  ]
+}
