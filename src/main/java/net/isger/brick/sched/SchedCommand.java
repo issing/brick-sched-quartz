@@ -26,8 +26,7 @@ public class SchedCommand extends GateCommand {
     }
 
     public static SchedCommand cast(BaseCommand cmd) {
-        return cmd == null || cmd.getClass() == SchedCommand.class ? (SchedCommand) cmd
-                : cmd.infect(new SchedCommand(false));
+        return cmd == null || cmd.getClass() == SchedCommand.class ? (SchedCommand) cmd : cmd.infect(new SchedCommand(false));
     }
 
 }

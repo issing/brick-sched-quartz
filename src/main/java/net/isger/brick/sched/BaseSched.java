@@ -44,11 +44,9 @@ public class BaseSched extends AbstractSched {
         container.inject(handler);
         command = new PluginCommand();
         command.setDomain((String) this.getParameter(PARAM_DOMAIN));
-        command.setOperate(Strings.empty(
-                (String) this.getParameter(PARAM_ACTION), PARAM_ACTION));
+        command.setOperate(Strings.empty((String) this.getParameter(PARAM_ACTION), PARAM_ACTION));
         command.setName((String) this.getParameter(PARAM_NAME));
-        Map<String, Object> parameters = (Map<String, Object>) this
-                .getParameter("parameters");
+        Map<String, Object> parameters = (Map<String, Object>) this.getParameter("parameters");
         if (parameters != null) {
             command.setParameter(parameters);
         }
