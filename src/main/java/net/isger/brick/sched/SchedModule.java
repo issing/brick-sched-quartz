@@ -23,6 +23,7 @@ import net.isger.brick.core.Gate;
 import net.isger.brick.core.GateCommand;
 import net.isger.brick.core.GateModule;
 import net.isger.brick.plugin.PluginCommand;
+import net.isger.util.Asserts;
 import net.isger.util.Dates;
 import net.isger.util.Strings;
 
@@ -72,14 +73,15 @@ public class SchedModule extends GateModule {
             }
             scheduler.start();
         } catch (Exception e) {
-            throw new IllegalStateException("Failure to create scheduler", e);
+            throw Asserts.state("Failure to create scheduler", e);
         }
     }
 
     @SuppressWarnings("unchecked")
     public void create(GateCommand cmd) {
         super.create(cmd);
-        if (!cmd.getTransient()) {
+        /* 即可完成JOB创建 */
+        if (cmd.getImmediate()) {
             Map<String, Sched> scheds = (Map<String, Sched>) cmd.getResult();
             Sched sched;
             for (Entry<String, Sched> entry : scheds.entrySet()) {
@@ -89,7 +91,7 @@ public class SchedModule extends GateModule {
                     createJob(entry.getKey(), sched);
                 } catch (Exception e) {
                     sched.remove();
-                    throw new IllegalStateException("Failure to create schedule", e);
+                    throw Asserts.state("Failure to create schedule", e);
                 }
             }
         }
@@ -108,7 +110,7 @@ public class SchedModule extends GateModule {
                         }
                     }
                 } catch (Exception e) {
-                    throw new IllegalStateException("Failure to pause schedule", e);
+                    throw Asserts.state("Failure to pause schedule", e);
                 }
             }
         }
@@ -126,7 +128,7 @@ public class SchedModule extends GateModule {
                         }
                     }
                 } catch (Exception e) {
-                    throw new IllegalStateException("Failure to pause schedule", e);
+                    throw Asserts.state("Failure to pause schedule", e);
                 }
             }
         }
@@ -147,16 +149,15 @@ public class SchedModule extends GateModule {
                 }
                 sched.remove();
             } catch (Exception e) {
-                throw new IllegalStateException("Failure to remove schedule", e);
+                throw Asserts.state("Failure to remove schedule", e);
             }
         }
     }
 
     private void createJob(String name, Sched sched) throws Exception {
         if (sched instanceof BaseSched) {
-            PluginCommand cmd = ((BaseSched) sched).getCommand();
-            String domain = cmd.getDomain();
-            if (Strings.isEmpty(domain)) {
+            PluginCommand cmd = ((BaseSched) sched).command;
+            if (cmd != null && Strings.isEmpty(cmd.getDomain())) {
                 cmd.setDomain(name);
             }
         }

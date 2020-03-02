@@ -7,6 +7,7 @@ import net.isger.brick.core.CommandHandler;
 import net.isger.brick.core.Handler;
 import net.isger.brick.inject.Container;
 import net.isger.brick.plugin.PluginCommand;
+import net.isger.util.Callable;
 import net.isger.util.Strings;
 import net.isger.util.anno.Alias;
 import net.isger.util.anno.Ignore;
@@ -33,7 +34,10 @@ public class BaseSched extends AbstractSched {
     private Handler handler;
 
     @Ignore
-    private PluginCommand command;
+    PluginCommand command;
+
+    @Ignore
+    private Callable<?> action;
 
     @SuppressWarnings("unchecked")
     public void initial() {
@@ -42,40 +46,44 @@ public class BaseSched extends AbstractSched {
             handler = new CommandHandler();
         }
         container.inject(handler);
-        command = new PluginCommand();
-        command.setDomain((String) this.getParameter(PARAM_DOMAIN));
-        command.setOperate(Strings.empty((String) this.getParameter(PARAM_ACTION), PARAM_ACTION));
-        command.setName((String) this.getParameter(PARAM_NAME));
-        Map<String, Object> parameters = (Map<String, Object>) this.getParameter("parameters");
-        if (parameters != null) {
-            command.setParameter(parameters);
+        Object action = getParameter(PARAM_ACTION);
+        if (!(action instanceof Callable)) {
+            command = new PluginCommand();
+            command.setDomain((String) getParameter(PARAM_DOMAIN));
+            command.setOperate(Strings.empty((String) action, PARAM_ACTION));
+            command.setName((String) this.getParameter(PARAM_NAME));
+            Map<String, Object> parameters = (Map<String, Object>) this.getParameter("parameters");
+            if (parameters != null) {
+                command.setParameter(parameters);
+            }
+            action = new Callable.Runnable() {
+                public void run(Object... args) {
+                    if (args != null && args.length > 0) {
+                        String operate = (String) args[0];
+                        if (Strings.isNotEmpty(operate)) {
+                            PluginCommand cmd = command.clone();
+                            cmd.setOperate(operate);
+                            handler.handle(cmd);
+                        }
+                    } else {
+                        handler.handle(command.clone());
+                    }
+                }
+            };
         }
-    }
-
-    protected PluginCommand getCommand() {
-        return command;
+        this.action = (Callable<?>) action;
     }
 
     public void create() {
-        String operate = (String) this.getParameter(PARAM_CREATE);
-        if (Strings.isNotEmpty(operate)) {
-            PluginCommand cmd = (PluginCommand) getCommand().clone();
-            cmd.setOperate(operate);
-            handler.handle(cmd);
-        }
+        action.call(getParameter(PARAM_CREATE));
     }
 
     public void action() {
-        handler.handle((PluginCommand) getCommand().clone());
+        action.call();
     }
 
     public void remove() {
-        String operate = (String) this.getParameter(PARAM_REMOVE);
-        if (Strings.isNotEmpty(operate)) {
-            PluginCommand cmd = (PluginCommand) getCommand().clone();
-            cmd.setOperate(operate);
-            handler.handle(cmd);
-        }
+        action.call(getParameter(PARAM_REMOVE));
     }
 
 }
