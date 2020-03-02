@@ -19,6 +19,7 @@ import org.quartz.TriggerBuilder;
 import org.quartz.impl.StdSchedulerFactory;
 
 import net.isger.brick.Constants;
+import net.isger.brick.core.Context;
 import net.isger.brick.core.Gate;
 import net.isger.brick.core.GateCommand;
 import net.isger.brick.core.GateModule;
@@ -38,6 +39,8 @@ public class SchedModule extends GateModule {
     private static final String SCHED = "sched";
 
     private static final String META_SCHED = "meta.sched";
+
+    private static final String META_CONTEXT = "meta.context";
 
     private Scheduler scheduler;
 
@@ -181,6 +184,7 @@ public class SchedModule extends GateModule {
         JobDetail detail = jobBuilder.build();
         JobDataMap data = detail.getJobDataMap();
         data.put(META_SCHED, sched);
+        data.put(META_CONTEXT, Context.getAction()); // 设定定时任务上下文
         scheduler.scheduleJob(detail, triggerBuilder.build());
         jobKeys.put(sched, detail.getKey());
     }
@@ -197,8 +201,8 @@ public class SchedModule extends GateModule {
 
         public void execute(JobExecutionContext context) throws JobExecutionException {
             JobDataMap data = context.getJobDetail().getJobDataMap();
-            Sched sched = (Sched) data.get(META_SCHED);
-            sched.action();
+            Context.setAction((Context) data.get(META_CONTEXT));
+            ((Sched) data.get(META_SCHED)).action();
         }
 
     }
