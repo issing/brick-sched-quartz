@@ -83,7 +83,7 @@ public class SchedModule extends GateModule {
     @SuppressWarnings("unchecked")
     public void create(GateCommand cmd) {
         super.create(cmd);
-        /* 即可完成JOB创建 */
+        /* 即刻完成JOB创建 */
         if (cmd.getImmediate()) {
             Map<String, Sched> scheds = (Map<String, Sched>) cmd.getResult();
             Sched sched;
