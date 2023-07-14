@@ -1,4 +1,4 @@
-package net.isger.brick.sched;
+package net.isger.brick.schedule;
 
 import java.util.Map;
 
@@ -13,7 +13,7 @@ import net.isger.util.anno.Alias;
 import net.isger.util.anno.Ignore;
 import net.isger.util.anno.Ignore.Mode;
 
-public class BaseSched extends AbstractSched {
+public class BaseSchedule extends AbstractSchedule {
 
     public static final String PARAM_DOMAIN = "domain";
 
@@ -74,16 +74,8 @@ public class BaseSched extends AbstractSched {
         this.action = (Callable<?>) action;
     }
 
-    public void create() {
-        action.call(getParameter(PARAM_CREATE));
-    }
-
     public void action() {
         action.call();
-    }
-
-    public void remove() {
-        action.call(getParameter(PARAM_REMOVE));
     }
 
 }

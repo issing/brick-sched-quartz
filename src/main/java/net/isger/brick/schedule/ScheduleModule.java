@@ -1,4 +1,4 @@
-package net.isger.brick.sched;
+package net.isger.brick.schedule;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -34,29 +34,29 @@ import net.isger.util.Strings;
  * @author issing
  * 
  */
-public class SchedModule extends GateModule {
+public class ScheduleModule extends GateModule {
 
-    private static final String SCHED = "sched";
+    private static final String SCHEDULE = "schedule";
 
-    private static final String META_SCHED = "meta.sched";
+    private static final String META_SCHEDULE = "meta.schedule";
 
     private static final String META_CONTEXT = "meta.context";
 
     private Scheduler scheduler;
 
-    private Map<Sched, JobKey> jobKeys;
+    private Map<Schedule, JobKey> jobKeys;
 
-    public SchedModule() {
-        jobKeys = new HashMap<Sched, JobKey>();
+    public ScheduleModule() {
+        jobKeys = new HashMap<Schedule, JobKey>();
     }
 
     public Class<? extends Gate> getTargetClass() {
-        return Sched.class;
+        return Schedule.class;
     }
 
     @SuppressWarnings("unchecked")
     public Class<? extends Gate> getImplementClass() {
-        Class<? extends Gate> implClass = (Class<? extends Gate>) getImplementClass(SCHED, null);
+        Class<? extends Gate> implClass = (Class<? extends Gate>) getImplementClass(SCHEDULE, null);
         if (implClass == null) {
             implClass = super.getImplementClass();
         }
@@ -64,7 +64,7 @@ public class SchedModule extends GateModule {
     }
 
     public Class<? extends Gate> getBaseClass() {
-        return BaseSched.class;
+        return BaseSchedule.class;
     }
 
     public void initial() {
@@ -72,7 +72,7 @@ public class SchedModule extends GateModule {
         try {
             scheduler = StdSchedulerFactory.getDefaultScheduler();
             for (Entry<String, Gate> entry : getGates().entrySet()) {
-                createJob(entry.getKey(), (Sched) entry.getValue());
+                createJob(entry.getKey(), (Schedule) entry.getValue());
             }
             scheduler.start();
         } catch (Exception e) {
@@ -83,28 +83,21 @@ public class SchedModule extends GateModule {
     @SuppressWarnings("unchecked")
     public void create(GateCommand cmd) {
         super.create(cmd);
-        /* 即刻完成JOB创建 */
-        if (cmd.getImmediate()) {
-            Map<String, Sched> scheds = (Map<String, Sched>) cmd.getResult();
-            Sched sched;
-            for (Entry<String, Sched> entry : scheds.entrySet()) {
-                sched = entry.getValue();
-                try {
-                    sched.create();
-                    createJob(entry.getKey(), sched);
-                } catch (Exception e) {
-                    sched.remove();
-                    throw Asserts.state("Failure to create schedule", e);
-                }
+        Map<String, Schedule> scheds = (Map<String, Schedule>) cmd.getResult();
+        for (Entry<String, Schedule> entry : scheds.entrySet()) {
+            try {
+                createJob(entry.getKey(), entry.getValue());
+            } catch (Exception e) {
+                throw Asserts.state("Failure to create schedule", e);
             }
         }
     }
 
     public void pause() {
         GateCommand cmd = GateCommand.getAction();
-        Sched sched;
+        Schedule sched;
         for (Entry<String, Object> entry : cmd.getParameter().entrySet()) {
-            if ((sched = (Sched) getGate(entry.getKey())) != null) {
+            if ((sched = (Schedule) getGate(entry.getKey())) != null) {
                 try {
                     JobKey key = jobKeys.get(sched);
                     if (key != null) {
@@ -120,9 +113,9 @@ public class SchedModule extends GateModule {
     }
 
     public void resume(GateCommand cmd) {
-        Sched sched;
+        Schedule sched;
         for (Entry<String, Object> entry : cmd.getParameter().entrySet()) {
-            if ((sched = (Sched) getGate(entry.getKey())) != null) {
+            if ((sched = (Schedule) getGate(entry.getKey())) != null) {
                 try {
                     JobKey key = jobKeys.get(sched);
                     if (key != null) {
@@ -140,8 +133,8 @@ public class SchedModule extends GateModule {
     @SuppressWarnings("unchecked")
     public void remove(GateCommand cmd) {
         super.remove(cmd);
-        Map<String, Sched> scheds = (Map<String, Sched>) cmd.getResult();
-        for (Sched sched : scheds.values()) {
+        Map<String, Schedule> scheds = (Map<String, Schedule>) cmd.getResult();
+        for (Schedule sched : scheds.values()) {
             try {
                 JobKey key = jobKeys.get(sched);
                 if (key != null) {
@@ -150,16 +143,15 @@ public class SchedModule extends GateModule {
                     }
                     jobKeys.remove(sched);
                 }
-                sched.remove();
             } catch (Exception e) {
                 throw Asserts.state("Failure to remove schedule", e);
             }
         }
     }
 
-    private void createJob(String name, Sched sched) throws Exception {
-        if (sched instanceof BaseSched) {
-            PluginCommand cmd = ((BaseSched) sched).command;
+    private void createJob(String name, Schedule sched) throws Exception {
+        if (sched instanceof BaseSchedule) {
+            PluginCommand cmd = ((BaseSchedule) sched).command;
             if (cmd != null && Strings.isEmpty(cmd.getDomain())) {
                 cmd.setDomain(name);
             }
@@ -183,7 +175,7 @@ public class SchedModule extends GateModule {
         jobBuilder.withIdentity(name, group);
         JobDetail detail = jobBuilder.build();
         JobDataMap data = detail.getJobDataMap();
-        data.put(META_SCHED, sched);
+        data.put(META_SCHEDULE, sched);
         data.put(META_CONTEXT, Context.getAction()); // 设定定时任务上下文
         scheduler.scheduleJob(detail, triggerBuilder.build());
         jobKeys.put(sched, detail.getKey());
@@ -202,7 +194,7 @@ public class SchedModule extends GateModule {
         public void execute(JobExecutionContext context) throws JobExecutionException {
             JobDataMap data = context.getJobDetail().getJobDataMap();
             Context.setAction((Context) data.get(META_CONTEXT));
-            ((Sched) data.get(META_SCHED)).action();
+            ((Schedule) data.get(META_SCHEDULE)).action();
         }
 
     }

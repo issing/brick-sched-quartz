@@ -1,10 +1,10 @@
-package net.isger.brick.sched;
+package net.isger.brick.schedule;
 
 import java.util.Date;
 
 import net.isger.brick.core.BaseGate;
 
-public abstract class AbstractSched extends BaseGate implements Sched {
+public abstract class AbstractSchedule extends BaseGate implements Schedule {
 
     private String group;
 

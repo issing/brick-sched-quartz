@@ -1,10 +1,10 @@
-package net.isger.brick.sched;
+package net.isger.brick.schedule;
 
 import java.util.Date;
 
 import net.isger.brick.core.Gate;
 
-public interface Sched extends Gate {
+public interface Schedule extends Gate {
 
     public Date getEffective();
 
@@ -16,10 +16,6 @@ public interface Sched extends Gate {
 
     public String getGroup();
 
-    public void create();
-
     public void action();
-
-    public void remove();
 
 }
