@@ -3,14 +3,18 @@
     <parent>
         <groupId>net.isger</groupId>
         <artifactId>brick-primary</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>0.0.2-alpha</version>
+        <relativePath />
     </parent>
     <artifactId>brick-sched-quartz</artifactId>
     <packaging>jar</packaging>
+
     <name>brick-sched-quartz</name>
+
     <properties>
         <quartz.version>2.3.2</quartz.version>
     </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.quartz-scheduler</groupId>
